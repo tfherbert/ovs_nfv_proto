@@ -16,6 +16,12 @@ for i in rpm-build createrepo libguestfs-tools python-docutils bsdtar; do
     fi
 done
 
+#
+# Special kernel version if any are required.
+#
+kernel_major=3
+kernel_minor=13.1
+
 # RDO Manager expects a stack user to exist, this checks for one
 # and creates it if you are root
 if ! id stack > /dev/null; then
@@ -142,18 +148,18 @@ EOI
 ssh -T ${SSH_OPTIONS[@]} "root@$UNDERCLOUD" <<EOI
 set -e
 yum -y install gcc ncurses ncurses-devel bc xz
-mkdir Linux_3.13.1
-cd Linux_3.13.1
-wget --quiet https://www.kernel.org/pub/linux/kernel/v3.0/linux-3.13.1.tar.xz
-xz -d linux-3.13.1.tar.xz
-tar -xf linux-3.13.1.tar -C /usr/src/
-cd /usr/src/linux-3.13.1/
+mkdir Linux_$kernel_major$kernel_minor.-0.0.x86_64
+cd Linux_$kernel_major$kernel_minor.-0.0.x86_64
+wget --quiet https://www.kernel.org/pub/linux/kernel/v3.0/linux-$kernel_major$kernel_minor.tar.xz
+xz -d linux-$kernel_major$kernel_minor.tar.xz
+tar -xf linux-$kernel_major$kernel_minor.tar.xz -C /usr/src/kernels
+mv /usr/src/kernels/linux-$kernel_major$kernel_minor /usr/src/kernels/linux-linux-$kernel_major$kernel_minor.0.0.x86_64
+cd /usr/src/linux-linux-$kernel_major$kernel_minor.0.0.x86_64
 yes "" | make oldconfig
 sed -i -e 's/CONFIG_BT_HCIVHCI=m/CONFIG_BT_HCIVHCI=n/' .config
 make -j 4
 make modules_install
 make install
-ln -s /usr/src/linux-3.13.1 /usr/src/kernels/3.13.1.x86_64
 EOI
 
 virsh reboot instack
