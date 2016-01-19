@@ -11,12 +11,14 @@ then
     rm -rf $TMPDIR
 fi
 
-sudo yum install -y autoconf automake libtool rpm-build redhat-rpm-config
+sudo yum install gcc make python-devel openssl-devel kernel-devel graphviz \
+       kernel-debug-devel autoconf automake rpm-build redhat-rpm-config \
+       libtool
 
 TAG=nsh-v8
 VERSION=2.3.90
 os_type=rhel6
-kernel_version=3.13.1
+kernel_version=$(uname -a | awk '{print $3}')
 
 mkdir -p $TMPDIR
 
