@@ -148,20 +148,20 @@ EOI
 ssh -T ${SSH_OPTIONS[@]} "root@$UNDERCLOUD" <<EOI
 set -e
 yum -y install gcc ncurses ncurses-devel bc xz
-echo mkdir Linux_$kernel_major.$kernel_minor.0.0.x86_64
-mkdir Linux_$kernel_major.$kernel_minor.0.0.x86_64
-echo cd Linux_$kernel_major.$kernel_minor.0.0.x86_64
-cd Linux_$kernel_major.$kernel_minor.0.0.x86_64
+echo mkdir Linux_$kernel_major.$kernel_minor.x86_64
+mkdir Linux_$kernel_major.$kernel_minor..x86_64
+echo cd Linux_$kernel_major.$kernel_minor..x86_64
+cd Linux_$kernel_major.$kernel_minor..x86_64
 echo wget --quiet https://www.kernel.org/pub/linux/kernel/v3.0/linux-$kernel_major.$kernel_minor.tar.xz
 wget --quiet https://www.kernel.org/pub/linux/kernel/v3.0/linux-$kernel_major.$kernel_minor.tar.xz
 echo xz -d linux-$kernel_major.$kernel_minor.tar.xz
 xz -d linux-$kernel_major.$kernel_minor.tar.xz
 echo tar -xf linux-$kernel_major.$kernel_minor.tar -C /usr/src/kernels
 tar -xf linux-$kernel_major.$kernel_minor.tar -C /usr/src/kernels
-echo mv /usr/src/kernels/linux-$kernel_major.$kernel_minor /usr/src/kernels/linux-$kernel_major.$kernel_minor.0.0.x86_64
-mv /usr/src/kernels/linux-$kernel_major.$kernel_minor /usr/src/kernels/linux-$kernel_major.$kernel_minor.0.0.x86_64
-echo cd /usr/src/kernels/linux-$kernel_major.$kernel_minor.0.0.x86_64
-cd /usr/src/kernels/linux-$kernel_major.$kernel_minor.0.0.x86_64
+echo mv /usr/src/kernels/linux-$kernel_major.$kernel_minor /usr/src/kernels/linux-$kernel_major.$kernel_minor.x86_64
+mv /usr/src/kernels/linux-$kernel_major.$kernel_minor /usr/src/kernels/linux-$kernel_major.$kernel_minor.x86_64
+echo cd /usr/src/kernels/linux-$kernel_major.$kernel_minor.x86_64
+cd /usr/src/kernels/linux-$kernel_major.$kernel_minor.x86_64
 yes "" | make oldconfig
 sed -i -e 's/CONFIG_BT_HCIVHCI=m/CONFIG_BT_HCIVHCI=n/' .config
 make -j 4
