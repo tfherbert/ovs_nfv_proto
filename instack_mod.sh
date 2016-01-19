@@ -20,7 +20,7 @@ done
 # Special kernel version if any are required.
 #
 kernel_major=3
-kernel_minor=13.1
+kernel_minor=13.11
 
 # RDO Manager expects a stack user to exist, this checks for one
 # and creates it if you are root
@@ -149,24 +149,26 @@ ssh -T ${SSH_OPTIONS[@]} "root@$UNDERCLOUD" <<EOI
 set -e
 yum -y install gcc ncurses ncurses-devel bc xz
 echo mkdir Linux_$kernel_major.$kernel_minor.x86_64
-mkdir Linux_$kernel_major.$kernel_minor..x86_64
-echo cd Linux_$kernel_major.$kernel_minor..x86_64
-cd Linux_$kernel_major.$kernel_minor..x86_64
-echo wget --quiet https://www.kernel.org/pub/linux/kernel/v3.0/linux-$kernel_major.$kernel_minor.tar.xz
-wget --quiet https://www.kernel.org/pub/linux/kernel/v3.0/linux-$kernel_major.$kernel_minor.tar.xz
+mkdir Linux_$kernel_major.$kernel_minor.x86_64
+echo cd Linux_$kernel_major.$kernel_minor.x86_64
+cd Linux_$kernel_major.$kernel_minor.x86_64
+echo wget --quiet https://www.kernel.org/pub/linux/kernel/v$kernel_major.0/linux-$kernel_major.$kernel_minor.tar.xz
+wget --quiet https://www.kernel.org/pub/linux/kernel/v$kernel_major.0/linux-$kernel_major.$kernel_minor.tar.xz
 echo xz -d linux-$kernel_major.$kernel_minor.tar.xz
 xz -d linux-$kernel_major.$kernel_minor.tar.xz
-echo tar -xf linux-$kernel_major.$kernel_minor.tar -C /usr/src/kernels
-tar -xf linux-$kernel_major.$kernel_minor.tar -C /usr/src/kernels
-echo mv /usr/src/kernels/linux-$kernel_major.$kernel_minor /usr/src/kernels/linux-$kernel_major.$kernel_minor.x86_64
-mv /usr/src/kernels/linux-$kernel_major.$kernel_minor /usr/src/kernels/linux-$kernel_major.$kernel_minor.x86_64
-echo cd /usr/src/kernels/linux-$kernel_major.$kernel_minor.x86_64
-cd /usr/src/kernels/linux-$kernel_major.$kernel_minor.x86_64
+echo tar -xf linux-$kernel_major.$kernel_minor.tar
+tar -xf linux-$kernel_major.$kernel_minor.tar
+echo cd linux-$kernel_major.$kernel_minor
+cd linux-$kernel_major.$kernel_minor
+echo yes "" | make oldconfig
 yes "" | make oldconfig
+echo sed -i -e 's/CONFIG_BT_HCIVHCI=m/CONFIG_BT_HCIVHCI=n/' .config
 sed -i -e 's/CONFIG_BT_HCIVHCI=m/CONFIG_BT_HCIVHCI=n/' .config
-make -j 4
-make modules_install
-make install
+echo make -j 4 rpm
+make -j 4 rpm
+echo rpm -i kernel-$kernel_major.$kernel_minor-3.x86_64.rpm
+rpm -i kernel-$kernel_major.$kernel_minor-3.x86_64.rpm
+rpm -i kernel-devel-$kernel_major.$kernel_minor-3.x86_64.rpm
 EOI
 
 virsh reboot instack
