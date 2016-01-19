@@ -147,7 +147,7 @@ EOI
 
 ssh -T ${SSH_OPTIONS[@]} "root@$UNDERCLOUD" <<EOI
 set -e
-yum -y install gcc ncurses ncurses-devel bc xz
+yum -y install gcc ncurses ncurses-devel bc xz rpm-build
 echo mkdir Linux_$kernel_major.$kernel_minor.x86_64
 mkdir Linux_$kernel_major.$kernel_minor.x86_64
 echo cd Linux_$kernel_major.$kernel_minor.x86_64
@@ -164,11 +164,14 @@ echo yes "" | make oldconfig
 yes "" | make oldconfig
 echo sed -i -e 's/CONFIG_BT_HCIVHCI=m/CONFIG_BT_HCIVHCI=n/' .config
 sed -i -e 's/CONFIG_BT_HCIVHCI=m/CONFIG_BT_HCIVHCI=n/' .config
-echo make -j 4 rpm
-make -j 4 rpm
-echo rpm -i kernel-$kernel_major.$kernel_minor-3.x86_64.rpm
-rpm -i kernel-$kernel_major.$kernel_minor-3.x86_64.rpm
-rpm -i kernel-devel-$kernel_major.$kernel_minor-3.x86_64.rpm
+echo make rpm
+make rpm
+echo cd /root/rpmbuild/RPMS/x86_64/
+cd /root/rpmbuild/RPMS/x86_64/
+echo rpm -i kernel-$kernel_major.$kernel_minor*.rpm
+rpm -i kernel-$kernel_major.$kernel_minor*.rpm
+echo rpm -i kernel-devel-$kernel_major.$kernel_minor*.rpm
+rpm -i kernel-devel-$kernel_major.$kernel_minor*.rpm
 EOI
 
 virsh reboot instack
