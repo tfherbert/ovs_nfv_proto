@@ -148,30 +148,14 @@ EOI
 ssh -T ${SSH_OPTIONS[@]} "root@$UNDERCLOUD" <<EOI
 set -e
 yum -y install gcc ncurses ncurses-devel bc xz rpm-build
-echo mkdir Linux_$kernel_major.$kernel_minor.x86_64
-mkdir Linux_$kernel_major.$kernel_minor.x86_64
-echo cd Linux_$kernel_major.$kernel_minor.x86_64
-cd Linux_$kernel_major.$kernel_minor.x86_64
-echo wget --quiet https://www.kernel.org/pub/linux/kernel/v$kernel_major.0/linux-$kernel_major.$kernel_minor.tar.xz
-wget --quiet https://www.kernel.org/pub/linux/kernel/v$kernel_major.0/linux-$kernel_major.$kernel_minor.tar.xz
-echo xz -d linux-$kernel_major.$kernel_minor.tar.xz
-xz -d linux-$kernel_major.$kernel_minor.tar.xz
-echo tar -xf linux-$kernel_major.$kernel_minor.tar
-tar -xf linux-$kernel_major.$kernel_minor.tar
-echo cd linux-$kernel_major.$kernel_minor
-cd linux-$kernel_major.$kernel_minor
-echo yes "" | make oldconfig
-yes "" | make oldconfig
-echo sed -i -e 's/CONFIG_BT_HCIVHCI=m/CONFIG_BT_HCIVHCI=n/' .config
-sed -i -e 's/CONFIG_BT_HCIVHCI=m/CONFIG_BT_HCIVHCI=n/' .config
-echo make rpm
-make rpm
-echo cd /root/rpmbuild/RPMS/x86_64/
-cd /root/rpmbuild/RPMS/x86_64/
-echo rpm -i kernel-$kernel_major.$kernel_minor*.rpm
-rpm -i kernel-$kernel_major.$kernel_minor*.rpm
-echo rpm -i kernel-devel-$kernel_major.$kernel_minor*.rpm
-rpm -i kernel-devel-$kernel_major.$kernel_minor*.rpm
+echo wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-3.16.3-1.el6.elrepo.x86_64.rpm
+wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-3.16.3-1.el6.elrepo.x86_64.rpm
+echo wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-devel-3.16.3-1.el6.elrepo.x86_64.rpm
+wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-devel-3.16.3-1.el6.elrepo.x86_64.rpm
+echo rpm -i kernel-ml-3.16.3-1.el6.elrepo.x86_64.rpm
+rpm -i kernel-ml-3.16.3-1.el6.elrepo.x86_64.rpm
+echo rpm -i kernel-ml-devel-3.16.3-1.el6.elrepo.x86_64.rpm
+rpm -i kernel-ml-devel-3.16.3-1.el6.elrepo.x86_64.rpm
 EOI
 
 virsh reboot instack
