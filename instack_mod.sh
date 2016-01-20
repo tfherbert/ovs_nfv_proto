@@ -1,6 +1,40 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 declare -i CNT
+
+usage() {
+    echo $0 -h help -a "minor release" -i "major release" >&2
+    exit 1
+}
+
+while getopts ":ha:i:" opt; do
+    case $opt in
+        a)
+            kernel_major=${OPTARG}
+            ;;
+        h)
+            usage
+	    exit 1
+            ;;
+        i)
+            kernel_minor=${OPTARG}
+            ;;
+    esac
+done
+
+#
+# Special kernel version if any are required.
+#
+if [ -z ${kernel_minor} ]; then
+	kernel_minor=15.8
+fi
+if [ -z ${kernel_major} ]; then
+	kernel_major=3
+fi
+
+echo ===================
+echo Will install kernel version: major is $kernel_major and minor is $kernel_minor
+echo ===================
 
 rdo_images_uri=https://ci.centos.org/artifacts/rdo/images/liberty/delorean/stable
 
@@ -15,12 +49,6 @@ for i in rpm-build createrepo libguestfs-tools python-docutils bsdtar; do
         sudo yum install -y $i
     fi
 done
-
-#
-# Special kernel version if any are required.
-#
-kernel_major=3
-kernel_minor=13.11
 
 # RDO Manager expects a stack user to exist, this checks for one
 # and creates it if you are root
@@ -129,6 +157,18 @@ while ! ssh -T ${SSH_OPTIONS[@]}  "root@$UNDERCLOUD" "echo ''" > /dev/null && [ 
 done
 # TODO fail if CNT=0
 
+# yum update undercloud and reboot.
+ssh -T ${SSH_OPTIONS[@]} "root@$UNDERCLOUD" <<EOI
+set -e
+
+echo yum -y update
+yum -y update
+
+EOI
+
+virsh reboot instack
+sleep 30
+
 # yum repo, triple-o package and ssh key setup for the undercloud
 ssh -T ${SSH_OPTIONS[@]} "root@$UNDERCLOUD" <<EOI
 set -e
@@ -148,18 +188,33 @@ EOI
 ssh -T ${SSH_OPTIONS[@]} "root@$UNDERCLOUD" <<EOI
 set -e
 yum -y install gcc ncurses ncurses-devel bc xz rpm-build
-echo wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-3.16.3-1.el6.elrepo.x86_64.rpm
-wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-3.16.3-1.el6.elrepo.x86_64.rpm
-echo wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-devel-3.16.3-1.el6.elrepo.x86_64.rpm
-wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-devel-3.16.3-1.el6.elrepo.x86_64.rpm
-echo rpm -i kernel-ml-3.16.3-1.el6.elrepo.x86_64.rpm
-rpm -i kernel-ml-3.16.3-1.el6.elrepo.x86_64.rpm
-echo rpm -i kernel-ml-devel-3.16.3-1.el6.elrepo.x86_64.rpm
-rpm -i kernel-ml-devel-3.16.3-1.el6.elrepo.x86_64.rpm
+echo wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-$kernel_major.$kernel_minor-1.el6.elrepo.x86_64.rpm
+wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-$kernel_major.$kernel_minor-1.el6.elrepo.x86_64.rpm
+echo wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-devel-$kernel_major.$kernel_minor-1.el6.elrepo.x86_64.rpm
+wget --quiet http://mirrors.neterra.net/elrepo/kernel/el6/x86_64/RPMS/kernel-ml-devel-$kernel_major.$kernel_minor-1.el6.elrepo.x86_64.rpm
+echo rpm -i kernel-ml-$kernel_major.$kernel_minor-1.el6.elrepo.x86_64.rpm
+rpm -i kernel-ml-$kernel_major.$kernel_minor-1.el6.elrepo.x86_64.rpm
+echo rpm -i kernel-ml-devel-$kernel_major.$kernel_minor-1.el6.elrepo.x86_64.rpm
+rpm -i kernel-ml-devel-$kernel_major.$kernel_minor-1.el6.elrepo.x86_64.rpm
+
+echo cd /lib/modules/$kernel_major.$kernel_minor-1.el6.elrepo.x86_64
+cd /lib/modules/$kernel_major.$kernel_minor-1.el6.elrepo.x86_64
+echo rm -f build
+rm -f build
+echo ln -s /usr/src/kernels/$kernel_major.$kernel_minor-1.el6.elrepo.x86_64 build
+ln -s /usr/src/kernels/$kernel_major.$kernel_minor-1.el6.elrepo.x86_64 build
+#echo rm -f source
+#rm -f source
+#echo ln -s ./build source
+#ln -s ./build source
 EOI
 
-virsh reboot instack
 
 # copy instackenv file for future virt deployments
 if [ ! -d stack ]; then mkdir stack; fi
 scp ${SSH_OPTIONS[@]} stack@$UNDERCLOUD:instackenv.json stack/instackenv.json
+
+
+virsh reboot instack
+
+exit 0
