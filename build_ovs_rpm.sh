@@ -11,7 +11,7 @@ then
     rm -rf $TMPDIR
 fi
 
-sudo yum install gcc make python-devel openssl-devel kernel-devel graphviz \
+sudo yum --quiet install gcc make python-devel openssl-devel kernel-devel graphviz \
        kernel-debug-devel autoconf automake rpm-build redhat-rpm-config \
        libtool
 
@@ -57,10 +57,10 @@ echo cp openvswitch-$VERSION.tar.gz $HOME/rpmbuild/SOURCES
 cp openvswitch-$VERSION.tar.gz $HOME/rpmbuild/SOURCES
 
 echo "Building kernel module..."
-rpmbuild -bb -D "kversion $kernel_version" -D "kflavors default" --define "_topdir `echo $RPMDIR`" --without check rhel/openvswitch-kmod-${os_type}.spec
+rpmbuild -bb -D "kversion $kernel_version" -D "kflavors default" --define "_unpackaged_files_terminate_build 0" --define "_topdir `echo $RPMDIR`" --without check rhel/openvswitch-kmod-${os_type}.spec
 echo " Kernel RPM built!"
 
 echo "Building User Space..."
-rpmbuild -bb "x86_64" --define "_topdir `echo $RPMDIR`" --without check rhel/openvswitch.spec
+rpmbuild -bb --define "_topdir `echo $RPMDIR`" --without check rhel/openvswitch.spec
 
 
