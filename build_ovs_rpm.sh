@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 set -e
 declare -i CNT
 
@@ -11,7 +11,7 @@ then
     rm -rf $TMPDIR
 fi
 
-sudo yum --quiet install gcc make python-devel openssl-devel kernel-devel graphviz \
+sudo yum -y install gcc make python-devel openssl-devel kernel-devel graphviz \
        kernel-debug-devel autoconf automake rpm-build redhat-rpm-config \
        libtool
 
